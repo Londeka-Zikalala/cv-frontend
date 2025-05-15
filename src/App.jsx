@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Container, Form, Button, Alert, Row, Col } from "react-bootstrap";
+import axios from "axios";
 import "./App.css";
 
 function App() {
@@ -16,38 +17,46 @@ function App() {
   
     if (!file && !description) {
       setError("Please upload a file or describe what you need.");
+      setTimeout(() => setError(""), 3000);
       return;
     }
   
     if (!name || !email) {
       setError("Please fill in your name and email.");
+      setTimeout(() => setError(""), 3000);
       return;
     }
   
     setError("");
     const formData = new FormData();
-    if (file) formData.append("file", file);
-    formData.append("description", description);
-    formData.append("option", option);
-    formData.append("name", name);
-    formData.append("email", email);
+    formData.append('name', name);
+    formData.append('email', email);
+    formData.append('option', option);
+    formData.append('description', description);
+    if (file) formData.append('file', file);
   
     try {
-      const response = await fetch(import.meta.env.VITE_API_URL + "/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
+      const response = await axios.post("http://localhost:5000/api/upload", formData);
+  
+      if (response.status === 200) {
         setSubmitted(true);
+        setFile(null);
+        setDescription("");
+        setOption("cv");
+        setName("");
+        setEmail("");
+  
+        
+        setTimeout(() => setSubmitted(false), 3000);
       } else {
         setError("Upload failed. Please try again.");
+        setTimeout(() => setError(""), 3000);
       }
     } catch (err) {
       setError("Error uploading. Please check your connection.");
+      setTimeout(() => setError(""), 3000);
     }
-  };
-
+  }
   return (
     <>
       <div className="top-banner px-4 py-2 d-flex flex-column align-items-start">
@@ -107,7 +116,9 @@ function App() {
 
           <Form.Group className="mb-3">
             <Form.Label>Upload Your Existing CV (optional)</Form.Label>
-            <Form.Control size="sm" type="file" onChange={(e) => setFile(e.target.files[0])} />
+            <Form.Control  size="sm" 
+                          type="file"
+                          accept=".pdf,.doc,.docx,.txt" onChange={(e) => setFile(e.target.files[0])} />
           </Form.Group>
 
           <Form.Group className="mb-4">
